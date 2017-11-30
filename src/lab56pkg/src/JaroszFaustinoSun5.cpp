@@ -121,66 +121,65 @@ void ImageConverter::imageCb(const sensor_msgs::ImageConstPtr& msg)
 // You will implement your algorithm for calculating threshold here.
 Mat ImageConverter::thresholdImage(Mat gray_img)
 {
-	int   totalpixels;
-	Mat bw_img  = gray_img.clone(); // copy input image to a new image
-	totalpixels	  = gray_img.rows*gray_img.cols;			// total number of pixels in image
-	uchar graylevel; // use this variable to read the value of a pixel
-	int zt=0; // threshold grayscale value 
-	int H[256];
-	int index;
-	float p=0,q0=0,q1=0,mean=0,mean1=0,mean2=0,varb=0;
-	float eps=.0000001;
-	// Initialize histogram
-	for(int i=0; i<256; i++)
-	{
-		H[i] = 0;
-	}
-						
-	// Populate histogram
-	for(int r=0; r<gray_img.rows; r++)
-	{
-		for(int c=0; c<gray_img.cols; c++)
+		int   totalpixels;
+		Mat bw_img  = gray_img.clone(); // copy input image to a new image
+		totalpixels	  = gray_img.rows*gray_img.cols;			// total number of pixels in image
+		uchar graylevel; // use this variable to read the value of a pixel
+		int zt=0; // threshold grayscale value 
+		int H[256];
+		int index;
+		float p=0,q0=0,q1=0,mean=0,mean1=0,mean2=0,varb=0;
+		float eps=.0000001;
+		// Initialize histogram
+		for(int i=0; i<256; i++)
 		{
-			graylevel = gray_img.data[r*c];
-			index = (int)graylevel;
-			H[index] += 1; 
+			H[i] = 0;
 		}
-	}
+						
+		// Populate histogram
+		for(int r=0; r<gray_img.rows; r++)
+		{
+			for(int c=0; c<gray_img.cols; c++)
+			{
+				graylevel = gray_img.data[r*c];
+				index = (int)graylevel;
+				H[index] += 1; 
+			}
+		}
 
-	for(int i=0; i<256; i++)
-	{
-		mean += float(H[i]*i)/float(totalpixels);		
-	}
+		for(int i=0; i<256; i++)
+		{
+mean+=float(H[i]*i)/float(totalpixels);		
+}
 
 		
-	float newq0=0;
-	float bestvarb=0.;
-	zt = 0;  // you will be finding this automatically 
+		float newq0=0;
+		float bestvarb=0.;
+		zt = 0;  // you will be finding this automatically 
 
-	for(int i=0; i<256; i++)
-	{
-		p = float(H[i])/float(totalpixels);
-		newq0 = q0+p;
-		mean1 = (float(i*p)/float(eps+newq0))+(float(mean1*q0)/float(eps+newq0));
-		mean2 = float(mean-(newq0*mean1))/float(eps+1-newq0);
-		q0 = newq0;
-		varb = q0*float(1.0-q0)*float(mean1-mean2)*float(mean1-mean2);
-		if (varb>bestvarb)
+				for(int i=0; i<256; i++)
 		{
-			zt = i;
-			bestvarb = varb;
-		}
+			p=float(H[i])/float(totalpixels);
+			newq0=q0+p;
+			mean1=(float(i*p)/float(eps+newq0))+(float(mean1*q0)/float(eps+newq0));
+			mean2=float(mean-(newq0*mean1))/float(eps+1-newq0);
+			q0=newq0;
+			varb=q0*float(1.0-q0)*float(mean1-mean2)*float(mean1-mean2);
+			if (varb>bestvarb)
+			{zt=i;
+			bestvarb=varb;
+			}
 			
-	}
+		}
 
-	std::cout<<"Threshold is "<<zt<<std::endl;
-	// threshold the image
-	for(int i=0; i<totalpixels; i++)
-	{
-		graylevel = gray_img.data[i];	
-		if(graylevel>zt) bw_img.data[i]= 255; // set rgb to 255 (white)
-		else             bw_img.data[i]= 0; // set rgb to 0   (black)
-	}	
+		std::cout<<"Threshold is "<<zt<<std::endl;
+		// threshold the image
+		for(int i=0; i<totalpixels; i++)
+		{
+			graylevel = gray_img.data[i];	
+			if(graylevel>zt) bw_img.data[i]= 255; // set rgb to 255 (white)
+			else             bw_img.data[i]= 0; // set rgb to 0   (black)
+		}	
 	return bw_img;	
 }
 /*****************************************************
@@ -201,105 +200,81 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 	int sizes[height*width];
 
 	int ** pixellabel = new int*[height];
-	for (int i=0;i<height;i++) 
-	{
+	for (int i=0;i<height;i++) {
 		pixellabel[i] = new int[width];
 	}
-	
 	for(int row=0; row<height; row++)
 	{
 		for(int col=0; col<width; col++) 
-		{
-			sets[col+(row*width)]=-1;
+		{sets[col+(row*width)]=-1;
 			sizes[col+(row*width)]=0;
 		}
 	}
-
 	num = 1;
 	bool cflag=false;
-
-	// create associated image
+	// creating a demo image of colored lines
 	for(int row=0; row<height; row++)
 	{
 		for(int col=0; col<width; col++) 
-		{
-			cflag=false;
+		{cflag=false;
 			int val=bw_img.data[col+(row*width)];
 			if (val==255)
-			{
-				pixellabel[row][col] = 0;
-			}else
-				{
-					if (row!=0)
-					{
-						if (pixellabel[row-1][col]!=0)
-						{
-							pixellabel[row][col]=pixellabel[row-1][col];
-							cflag=true;
-						}
-					}
-					if (col!=0)
-					{
-						if (pixellabel[row][col-1]!=0)
-						{
-							if (cflag==false)
-							{
-								pixellabel[row][col]=pixellabel[row][col-1];
-							}else
-								{
-									if(pixellabel[row][col-1]!=pixellabel[row-1][col])
-									{
-										int s1=pixellabel[row][col-1];
-										int s2=pixellabel[row-1][col];
-										while (sets[s1]!=-1)
-										{
-											s1=sets[s1];
-										}
-										while (sets[s2]!=-1)
-										{
-											s2=sets[s2];
-										}
-										if (s1!=s2)
-										{
-											if (s2>s1)
-											{
-												sets[s2]=s1;
-											}else
-												{
-													sets[s1]=s2;
-												}
-										}
-
-									}
-								}
-							cflag=true;
-						}
-					}
-					if(cflag==false)
-					{
-						pixellabel[row][col]=num;
-						num += 1;
+			{pixellabel[row][col] = 0;}
+			else
+			{if (row!=0)
+				{if (pixellabel[row-1][col]!=0)
+					{pixellabel[row][col]=pixellabel[row-1][col];
+					cflag=true;
 					}
 				}
-			
-			}
+				if (col!=0)
+				{if (pixellabel[row][col-1]!=0)
+				{if (cflag==false)
+				{pixellabel[row][col]=pixellabel[row][col-1];}
+				else
+				{if(pixellabel[row][col-1]!=pixellabel[row-1][col])
+					{int s1=pixellabel[row][col-1];
+					int s2=pixellabel[row-1][col];
+					while (sets[s1]!=-1)
+					{s1=sets[s1];}
+					while (sets[s2]!=-1)
+					{s2=sets[s2];}
+					if (s1!=s2)
+						{if (s2>s1)
+							{sets[s2]=s1;}
+						else
+							{sets[s1]=s2;}
+						}
 
+					}
+				}
+				cflag=true;
+				}
+				}
+				if(cflag==false)
+				{pixellabel[row][col]=num;
+				num=num+1;
+
+				}
+			}
+			
 		}
 
-	for(int row=0; row<height; row++)
+	}
+
+		for(int row=0; row<height; row++)
 	{
 		for(int col=0; col<width; col++) 
 		{
-			int label=pixellabel[row][col];
-			int new_label=label;
-			while (sets[new_label]!=-1)
-			{
-				new_label=sets[new_label];
-			}
-			pixellabel[row][col]=new_label;
-			sizes[new_label]+=1;
+		
+		int label=pixellabel[row][col];
+		int new_label=label;
+		while (sets[new_label]!=-1)
+		{new_label=sets[new_label];}
+		pixellabel[row][col]=new_label;
+		sizes[new_label]+=1;
 		}
-	}
+		}
 
 	for(int row=0; row<height; row++)
 	{
@@ -313,12 +288,13 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 			{
 				pixellabel[row][col] = -1;
 			}
-		}
-	}
 
-	std::map<int,int> objnum2color;
-	objnum2color[-1] = 0;
-	int objnum = 1;
+	}
+}
+
+std::map<int,int> objnum2color;
+objnum2color[-1] = 0;
+int objnum = 1;
 	for(int row=0; row<height; row++)
 	{
 		for(int col=0; col<width; col++) 

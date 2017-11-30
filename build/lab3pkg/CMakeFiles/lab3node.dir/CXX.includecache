@@ -64,6 +64,10 @@ ur_msgs/SetIO.h
 ur_msgs/IOStates.h
 -
 
+/home/youbot/catkin_afausti2/src/lab3pkg/src/lab3.cpp
+lab3pkg/lab3.h
+/home/youbot/catkin_afausti2/src/lab3pkg/src/lab3pkg/lab3.h
+
 /home/youbot/catkin_afausti2/src/lab3pkg/src/lab3func.cpp
 lab3pkg/lab3.h
 /home/youbot/catkin_afausti2/src/lab3pkg/src/lab3pkg/lab3.h

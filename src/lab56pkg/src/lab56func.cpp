@@ -286,15 +286,28 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 	}
 }
 
+std::map<int,int> objnum2color;
+objnum2color[-1] = 0;
+int objnum = 1;
 	for(int row=0; row<height; row++)
 	{
 		for(int col=0; col<width; col++) 
 		{
 			if (pixellabel[row][col] !=0)
-			{pixellabel[row][col]=1+(pixellabel[row][col]%9);}
+			{
+			    if(objnum2color.count(pixellabel[row][col]) != 1)
+			    {
+			        objnum2color[pixellabel[row][col]] = objnum;
+			        objnum++;
+			        if(objnum == 10)
+			        {
+			            objnum = 1;
+			        }
+			    }    
+			}
 
-	}
-}
+	    }
+    }
 
 	// assign UNIQUE color to each object
 	Mat associate_img = Mat::zeros( bw_img.size(), CV_8UC3 ); // function will return this image
@@ -303,7 +316,7 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 	{
 		for(int col=0; col<width; col++)
 		{
-			switch (pixellabel[row][col])
+			switch (objnum2color[pixellabel[row][col]])
 			{
 				
 				case 0:

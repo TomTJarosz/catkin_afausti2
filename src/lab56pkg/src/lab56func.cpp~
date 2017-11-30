@@ -144,11 +144,16 @@ Mat ImageConverter::thresholdImage(Mat gray_img)
 				graylevel = gray_img.data[r*c];
 				index = (int)graylevel;
 				H[index] += 1; 
-				mean+=float(H[index]*index)/float(totalpixels)
 			}
 		}
+
+		for(int i=0; i<256; i++)
+		{
+mean+=float(H[i]*i)/float(totalpixels);		
+}
+
 		
-		float newq0=0
+		float newq0=0;
 		float bestvarb=0.;
 		zt = 0;  // you will be finding this automatically 
 
@@ -156,10 +161,10 @@ Mat ImageConverter::thresholdImage(Mat gray_img)
 		{
 			p=float(H[i])/float(totalpixels);
 			newq0=q0+p;
-			mean0=(float(i*p)/float(eps+newq0))+(float(mean0*q0)/float(eps+newq0));
-			mean1=float(mean-(newq0*mean0))/float(eps+1-newq0);
+			mean1=(float(i*p)/float(eps+newq0))+(float(mean1*q0)/float(eps+newq0));
+			mean2=float(mean-(newq0*mean1))/float(eps+1-newq0);
 			q0=newq0;
-			varb=q0*float(1.0-q0)*float(mean0-mean1)*float(mean0-mean1)
+			varb=q0*float(1.0-q0)*float(mean1-mean2)*float(mean1-mean2);
 			if (varb>bestvarb)
 			{zt=i;
 			bestvarb=varb;
@@ -167,7 +172,7 @@ Mat ImageConverter::thresholdImage(Mat gray_img)
 			
 		}
 
-		//std::cout<<zt<<std::endl;
+		std::cout<<"Threshold is "<<zt<<std::endl;
 		// threshold the image
 		for(int i=0; i<totalpixels; i++)
 		{
@@ -192,6 +197,8 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 	width = bw_img.cols;
 	int num = 0;
 	int sets[height*width];
+	int sizes[height*width];
+
 	int ** pixellabel = new int*[height];
 	for (int i=0;i<height;i++) {
 		pixellabel[i] = new int[width];
@@ -200,18 +207,18 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 	{
 		for(int col=0; col<width; col++) 
 		{sets[col+(row*width)]=-1;
+			sizes[col+(row*width)]=0;
 		}
 	}
 	num = 1;
 	bool cflag=false;
 	// creating a demo image of colored lines
-	std::cout<<"@####################@@@@@@@@@@@@@@@@@@@@@@###########################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@###############################################################@@@@@@@@@@@@@@@@@@@@@@@@"<<std::endl;
 	for(int row=0; row<height; row++)
 	{
 		for(int col=0; col<width; col++) 
 		{cflag=false;
 			int val=bw_img.data[col+(row*width)];
-			if (val==0)
+			if (val==255)
 			{pixellabel[row][col] = 0;}
 			else
 			{if (row!=0)
@@ -225,19 +232,36 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 				{if (cflag==false)
 				{pixellabel[row][col]=pixellabel[row][col-1];}
 				else
-				{sets[pixellabel[row][col-1]]=pixellabel[row-1][col];}
+				{if(pixellabel[row][col-1]!=pixellabel[row-1][col])
+					{int s1=pixellabel[row][col-1];
+					int s2=pixellabel[row-1][col];
+					while (sets[s1]!=-1)
+					{s1=sets[s1];}
+					while (sets[s2]!=-1)
+					{s2=sets[s2];}
+					if (s1!=s2)
+						{if (s2>s1)
+							{sets[s2]=s1;}
+						else
+							{sets[s1]=s2;}
+						}
+
+					}
+				}
 				cflag=true;
 				}
 				}
-				if(clfag==false)
+				if(cflag==false)
 				{pixellabel[row][col]=num;
-				num++;
+				num=num+1;
+
 				}
 			}
 			
 		}
 
 	}
+
 		for(int row=0; row<height; row++)
 	{
 		for(int col=0; col<width; col++) 
@@ -247,10 +271,42 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 		int new_label=label;
 		while (sets[new_label]!=-1)
 		{new_label=sets[new_label];}
-		pixellabel=new_label;
-		
+		pixellabel[row][col]=new_label;
+		sizes[new_label]+=1;
 		}
 		}
+
+	for(int row=0; row<height; row++)
+	{
+		for(int col=0; col<width; col++) 
+		{
+			if (sizes[pixellabel[row][col]] <150)
+			{pixellabel[row][col]=-1;}
+
+	}
+}
+
+std::map<int,int> objnum2color;
+int objnum = 1;
+	for(int row=0; row<height; row++)
+	{
+		for(int col=0; col<width; col++) 
+		{
+			if (pixellabel[row][col] !=0)
+			{
+			    if(objnum2color.count(pixellabel[row][col]) != 1)
+			    {
+			        objnum2color[pixellabel[row][col]] = objnum;
+			        objnum++;
+			        if(objnum == 10)
+			        {
+			            objnum = 1;
+			        }
+			    }    
+			}
+
+	    }
+    }
 
 	// assign UNIQUE color to each object
 	Mat associate_img = Mat::zeros( bw_img.size(), CV_8UC3 ); // function will return this image
@@ -259,7 +315,7 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 	{
 		for(int col=0; col<width; col++)
 		{
-			switch (  pixellabel[row][col] )
+			switch (objnum2color[pixellabel[row][col]])
 			{
 				
 				case 0:
@@ -325,7 +381,7 @@ Mat ImageConverter::associateObjects(Mat bw_img)
 			associate_img.at<Vec3b>(Point(col,row)) = color;
 		}
 	}
-	
+
 	return associate_img;
 }
 

@@ -8,10 +8,14 @@ bool isReady=1;
 bool pending=0;
 
 float SuctionValue = 0.0;
+float xw = 0.0;
+float yw = 0.0;
 
 bool leftclickdone = 1;
 bool rightclickdone = 1;
 
+std::vector<int> r_cent;
+std::vector<int> c_cent;
 /*****************************************************
 * Functions in class:
 * **************************************************/	
@@ -32,7 +36,7 @@ ImageConverter::ImageConverter():it_(nh_)
 	srv_SetIO = nh_.serviceClient<ur_msgs::SetIO>("ur_driver/set_io");
 
 
-    driver_msg.destination=lab_invk(-.3,-.3,0.2,-45.0);
+    driver_msg.destination=lab_invk(-0.3,-0.3,0.2,-45.0);
 
 	//publish the point to the robot
     ros::Rate loop_rate(SPIN_RATE); // Initialize the rate to publish to ur3/command
@@ -190,200 +194,200 @@ Mat ImageConverter::thresholdImage(Mat gray_img)
 // You will implement your algorithm for rastering here
 Mat ImageConverter::associateObjects(Mat bw_img)
 {
-	//initiallize the variables you will use
-	int height,width; // number of rows and colums of image
-	int red, green, blue; //used to assign color of each objects
-	uchar pixel; //used to read pixel value of input image 
-	height = bw_img.rows;
-	width = bw_img.cols;
-	int num = 0;
-	int sets[height*width];
-	int sizes[height*width];
+    //initiallize the variables you will use
+    int height,width; // number of rows and colums of image
+    int red, green, blue; //used to assign color of each objects
+    uchar pixel; //used to read pixel value of input image
+    height = bw_img.rows;
+    width = bw_img.cols;
+    int num = 0;
+    int sets[height*width];
+    int sizes[height*width];
 
-	int ** pixellabel = new int*[height];
-	for (int i=0;i<height;i++) 
-	{
-		pixellabel[i] = new int[width];
-	}
-	
-	for(int row=0; row<height; row++)
-	{
-		for(int col=0; col<width; col++) 
-		{
-			sets[col+(row*width)]=-1;
-			sizes[col+(row*width)]=0;
-		}
-	}
-
-	num = 1;
-	bool cflag=false;
-
-	// create associated image
-	for(int row=0; row<height; row++)
-	{
-		for(int col=0; col<width; col++) 
-		{
-			cflag=false;
-			int val=bw_img.data[col+(row*width)];
-			if (val==255)
-			{
-				pixellabel[row][col] = 0;
-			}else
-				{
-					if (row!=0)
-					{
-						if (pixellabel[row-1][col]!=0)
-						{
-							pixellabel[row][col]=pixellabel[row-1][col];
-							cflag=true;
-						}
-					}
-					if (col!=0)
-					{
-						if (pixellabel[row][col-1]!=0)
-						{
-							if (cflag==false)
-							{
-								pixellabel[row][col]=pixellabel[row][col-1];
-							}else
-								{
-									if(pixellabel[row][col-1]!=pixellabel[row-1][col])
-									{
-										int s1=pixellabel[row][col-1];
-										int s2=pixellabel[row-1][col];
-										while (sets[s1]!=-1)
-										{
-											s1=sets[s1];
-										}
-										while (sets[s2]!=-1)
-										{
-											s2=sets[s2];
-										}
-										if (s1!=s2)
-										{
-											if (s2>s1)
-											{
-												sets[s2]=s1;
-											}else
-												{
-													sets[s1]=s2;
-												}
-										}
-
-									}
-								}
-							cflag=true;
-						}
-					}
-					if(cflag==false)
-					{
-						pixellabel[row][col]=num;
-						num += 1;
-					}
-				}
-			
-			}
-
-		}
-
-	for(int row=0; row<height; row++)
-	{
-		for(int col=0; col<width; col++) 
-		{
-			int label=pixellabel[row][col];
-			int new_label=label;
-			while (sets[new_label]!=-1)
-			{
-				new_label=sets[new_label];
-			}
-			pixellabel[row][col]=new_label;
-			sizes[new_label]+=1;
-		}
-	}
-
-	for(int row=0; row<height; row++)
-	{
-		for(int col=0; col<width; col++) 
-		{
-			if (sizes[pixellabel[row][col]] <150)
-			{
-				pixellabel[row][col] = -1;
-			}
-			if (sizes[pixellabel[row][col]] > 750)
-			{
-				pixellabel[row][col] = -1;
-			}
-		}
-	}
-
-	std::map<int,int> objnum2color;
-	objnum2color[-1] = 0;
-	int objnum = 1;
-	for(int row=0; row<height; row++)
-	{
-		for(int col=0; col<width; col++) 
-		{
-			if (pixellabel[row][col] !=0)
-			{
-			    if(objnum2color.count(pixellabel[row][col]) != 1)
-			    {
-			        objnum2color[pixellabel[row][col]] = objnum;
-			        objnum++;
-			        if(objnum == 10)
-			        {
-			            objnum = 1;
-			        }
-			    }    
-			}
-
-	    }
+    int ** pixellabel = new int*[height];
+    for (int i=0;i<height;i++)
+    {
+        pixellabel[i] = new int[width];
+    }
+   
+    for(int row=0; row<height; row++)
+    {
+        for(int col=0; col<width; col++)
+        {
+            sets[col+(row*width)]=-1;
+            sizes[col+(row*width)]=0;
+        }
     }
 
-	// assign UNIQUE color to each object
-	Mat associate_img = Mat::zeros( bw_img.size(), CV_8UC3 ); // function will return this image
-	Vec3b color;
-	for(int row=0; row<height; row++)
-	{
-		for(int col=0; col<width; col++)
-		{
-			switch (objnum2color[pixellabel[row][col]])
-			{
-				
-				case 0:
-					red    = 255; // you can change color of each objects here
-					green = 255;
-					blue   = 255;
-					break;
-				case 1:
-					red    = 255; // you can change color of each objects here
-					green  = 0;
-					blue   = 0;
-					break;
-				case 2:
-					red    = 0;
-					green  = 255;
-					blue   = 0;
-					break;
-				case 3:
-					red    = 0;
-					green  = 0;
-					blue   = 255;
-					break;
-				case 4:
-					red    = 255;
-					green  = 255;
-					blue   = 0;
-					break;
-				case 5:
-					red    = 255;
-					green  = 0;
-					blue   = 255;
-					break;
-				case 6:
-					red    = 0;
-					green  = 255;
-					blue   = 255;
-					break;
+    num = 1;
+    bool cflag=false;
+
+    // create associated image
+    for(int row=0; row<height; row++)
+    {
+        for(int col=0; col<width; col++)
+        {
+            cflag=false;
+            int val=bw_img.data[col+(row*width)];
+            if (val==255)
+            {
+                pixellabel[row][col] = 0;
+            }else
+                {
+                    if (row!=0)
+                    {
+                        if (pixellabel[row-1][col]!=0)
+                        {
+                            pixellabel[row][col]=pixellabel[row-1][col];
+                            cflag=true;
+                        }
+                    }
+                    if (col!=0)
+                    {
+                        if (pixellabel[row][col-1]!=0)
+                        {
+                            if (cflag==false)
+                            {
+                                pixellabel[row][col]=pixellabel[row][col-1];
+                            }else
+                                {
+                                    if(pixellabel[row][col-1]!=pixellabel[row-1][col])
+                                    {
+                                        int s1=pixellabel[row][col-1];
+                                        int s2=pixellabel[row-1][col];
+                                        while (sets[s1]!=-1)
+                                        {
+                                            s1=sets[s1];
+                                        }
+                                        while (sets[s2]!=-1)
+                                        {
+                                            s2=sets[s2];
+                                        }
+                                        if (s1!=s2)
+                                        {
+                                            if (s2>s1)
+                                            {
+                                                sets[s2]=s1;
+                                            }else
+                                                {
+                                                    sets[s1]=s2;
+                                                }
+                                        }
+
+                                    }
+                                }
+                            cflag=true;
+                        }
+                    }
+                    if(cflag==false)
+                    {
+                        pixellabel[row][col]=num;
+                        num += 1;
+                    }
+                }
+           
+            }
+
+        }
+
+    for(int row=0; row<height; row++)
+    {
+        for(int col=0; col<width; col++)
+        {
+            int label=pixellabel[row][col];
+            int new_label=label;
+            while (sets[new_label]!=-1)
+            {
+                new_label=sets[new_label];
+            }
+            pixellabel[row][col]=new_label;
+            sizes[new_label]+=1;
+        }
+    }
+
+    for(int row=0; row<height; row++)
+    {
+        for(int col=0; col<width; col++)
+        {
+            if (sizes[pixellabel[row][col]] <95)
+            {
+                pixellabel[row][col] = -1;
+            }
+            if (sizes[pixellabel[row][col]] > 900)
+            {
+                pixellabel[row][col] = -1;
+            }
+        }
+    }
+    std::vector<int> objs;
+    std::map<int,int> objnum2color;
+    objnum2color[-1] = 0;
+    int objnum = 1;
+    for(int row=0; row<height; row++)
+    {
+        for(int col=0; col<width; col++)
+        {
+            if (pixellabel[row][col] !=0)
+            {
+                if(objnum2color.count(pixellabel[row][col]) != 1)
+                {objs.push_back(pixellabel[row][col]);
+                    objnum2color[pixellabel[row][col]] = objnum;
+                    objnum++;
+                    if(objnum == 10)
+                    {
+                        objnum = 1;
+                    }
+                }   
+            }
+
+        }
+    }
+
+    // assign UNIQUE color to each object
+    Mat associate_img = Mat::zeros( bw_img.size(), CV_8UC3 ); // function will return this image
+    Vec3b color;
+    for(int row=0; row<height; row++)
+    {
+        for(int col=0; col<width; col++)
+        {
+            switch (objnum2color[pixellabel[row][col]])
+            {
+               
+                case 0:
+                    red    = 255; // you can change color of each objects here
+                    green = 255;
+                    blue   = 255;
+                    break;
+                case 1:
+                    red    = 255; // you can change color of each objects here
+                    green  = 0;
+                    blue   = 0;
+                    break;
+                case 2:
+                    red    = 0;
+                    green  = 255;
+                    blue   = 0;
+                    break;
+                case 3:
+                    red    = 0;
+                    green  = 0;
+                    blue   = 255;
+                    break;
+                case 4:
+                    red    = 255;
+                    green  = 255;
+                    blue   = 0;
+                    break;
+                case 5:
+                    red    = 255;
+                    green  = 0;
+                    blue   = 255;
+                    break;
+                case 6:
+                    red    = 0;
+                    green  = 255;
+                    blue   = 255;
+                    break;
                 case 7:
                     red    = 128;
                     green  = 128;
@@ -398,24 +402,124 @@ Mat ImageConverter::associateObjects(Mat bw_img)
                     red    = 0;
                     green  = 128;
                     blue   = 128;
-                 	break;
-				default:
-					red    = 0;
-					green = 0;
-					blue   = 0;
-					break;					
-			}
+                     break;
+                default:
+                    red    = 0;
+                    green = 0;
+                    blue   = 0;
+                    break;                   
+            }
 
-			color[0] = blue;
-			color[1] = green;
-			color[2] = red;
-			associate_img.at<Vec3b>(Point(col,row)) = color;
-		}
-	}
+            color[0] = blue;
+            color[1] = green;
+            color[2] = red;
+            associate_img.at<Vec3b>(Point(col,row)) = color;
+        }
+    }
+    r_cent.clear();
+    c_cent.clear();
+    std::map<int,int> m00_map;
+    std::map<int,int> m01_map;
+    std::map<int,int> m10_map;
+    std::map<int,float> theta_map;
+    std::map<int,int> r_map;
+    std::map<int,int> c_map;
+    for (int i=0; i<int(objs.size());i++)
+    {int o_num=objs[i];
+    int m00=0;
+    int m01=0;
+    int m10=0;
+    for(int row=0; row<height; row++)
+    {
+        for(int col=0; col<width; col++)
+        {
+        if (pixellabel[row][col]!=o_num)
+        {continue;}
+        m00=m00+1;
+        m01=m01+col;
+        m10=m10+row;
+        }
+    }
+    m00_map[o_num]=m00;
+    m01_map[o_num]=m01;
+    m10_map[o_num]=m10;
+    r_map[o_num]=m10/m00;
+    c_map[o_num]=m01/m00;
+    c_cent.push_back(m01/m00);
+    r_cent.push_back(m10/m00);
+    }
+    for (int i=0; i<int(objs.size());i++)
+    {int o_num=objs[i];
+    float c11=0;
+    float c02=0;
+    float c20=0;
+    int r=r_map[o_num];
+    int c=c_map[o_num];
+    for(int row=0; row<height; row++)
+    {
+        for(int col=0; col<width; col++)
+        {
+        if (pixellabel[row][col]!=o_num)
+        {continue;}
+        c11=c11+((row-r)*(col-c));
+        c02=c02+((col-c)*(col-c));
+        c20=c20+((row-r)*(row-r));
+        }
+    }
+    theta_map[o_num]=atan(2.*c11/(c20-c02))/2.;
+    }
 
-	return associate_img;
+Vec3b black;
+black[0] = 0;
+black[1] = 0;
+black[2] = 0;
+for (int i=0; i<int(objs.size());i++)
+    {
+    int r=r_map[objs[i]];
+    int c=c_map[objs[i]];
+    int nr=r;
+    int nc=c;
+    float theta=theta_map[objs[i]];
+    for (int j=0; j<10; j++)
+    {int x=cos(theta)*j;
+    int y=sin(theta)*j;
+    nr=r+y;
+    nc=c+x;
+    if (nr>-1&&nc>-1&&nr<height&&nc<width)
+    {associate_img.at<Vec3b>(Point(nc,nr)) = black;}
+    }
+
+    for (float j=0; j<10; j++)
+    {int x=cos(theta)*j;
+    int y=sin(theta)*j;
+    nr=r-y;
+    nc=c-x;
+    if (nr>-1&&nc>-1&&nr<height&&nc<width)
+    {associate_img.at<Vec3b>(Point(nc,nr)) = black;}
+    }
+
+    for (int j=0; j<10; j++)
+    {int x=cos(theta+(3.1416/2.))*j;
+    int y=sin(theta+(3.1416/2.))*j;
+    nr=r+y;
+    nc=c+x;
+    if (nr>-1&&nc>-1&&nr<height&&nc<width)
+    {associate_img.at<Vec3b>(Point(nc,nr)) = black;}
+    }
+
+    for (int j=0; j<10; j++)
+    {int x=cos(theta+(3.1416/2.))*j;
+    int y=sin(theta+(3.1416/2.))*j;
+    nr=r-y;
+    nc=c-x;
+    if (nr>-1&&nc>-1&&nr<height&&nc<width)
+    {associate_img.at<Vec3b>(Point(nc,nr)) = black;}
+    }
+
+    }
+
+    return associate_img;
 }
-
 /*****************************************************
 	*Function for Lab 6
  * **************************************************/
@@ -429,32 +533,34 @@ void onMouse(int event, int x, int y, int flags, void* userdata)
 		ic_ptr->onClick(event,x,y,flags,userdata);
 }
 
-void ImageConverter::CameraToWorld(int r, int c, float xw, float yw)
+void ImageConverter::CameraToWorld(int r, int c)
 {
 	// Extrinsic parameters CHANGE IF CAMERA IS MOVED!!!
     // Normal Robot
-    /*
-    double theta = -0.0336951;
-    double Tx = -0.0596245;
-    double Ty = -0.1191342;
-	*/
+    double theta = 0.0;
+    double Tx = 0.899;
+	double Ty = 0.862;
+	
 
     // Back corner robot
+    /*
 	double theta = 0.00713;
 	double Tx = 0.185235;
 	double Ty = 0.067681;
+	*/
 
     // Intrinsic parameters 
-    double beta = 826.439;
+    double beta = 82.644;
     double Or = 240.0;
     double Oc = 320.0;
 
-    xw = cos(theta)*(r/beta - Or - Tx) + sin(theta)*(c/beta - Oc - Ty);
-    yw = -sin(theta)*(r/beta - Or - Tx) + cos(theta)*(c/beta - Oc - Ty);
+    xw = (-cos(theta)*(r/beta - Or - Tx) + sin(theta)*(c/beta - Oc - Ty))/1000.0;
+    yw = (-sin(theta)*(r/beta - Or - Tx) + cos(theta)*(c/beta - Oc - Ty))/1000.0;
 }
 
 void ImageConverter::moveArmTo(float x, float y, float z)
 {
+	ROS_INFO_STREAM("Move func world coords: " << x << "," << y << "," << z);
 	driver_msg.destination = lab_invk(x, y, z, -45.0);
 	cout<<"msg destination: \n"<<driver_msg<<endl;
 
@@ -515,7 +621,6 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 {
 	// For use with Lab 6
 	// If the robot is holding a block, place it at the designated row and column. 
-	float xw,yw; // world coordinates 
 	double zLow,zHigh; // world coordinates for block heigth and maneuvering heigth
 
 	zLow = 0.0275;
@@ -529,8 +634,9 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 			ROS_INFO_STREAM("left click:  (" << x << ", " << y << ")");  //the point you clicked
 
 			// Calibrate
-			CameraToWorld(y,x,xw,yw);
-
+			CameraToWorld(y,x);
+			ROS_INFO_STREAM("Calibration:  (" << x << ", " << y << ") to (" << xw << ", " << yw << ")");
+			
 			// Move above target
 			moveArmTo(xw, yw, zHigh);
 
@@ -560,7 +666,7 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 			ROS_INFO_STREAM("right click:  (" << x << ", " << y << ")");  //the point you clicked
 
 			// Calibrate
-			CameraToWorld(y,x,xw,yw);
+			CameraToWorld(y,x);
 
 			// Move above target
 			moveArmTo(xw, yw, zHigh);

@@ -26,6 +26,7 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
 	a6 = 0.0535;
 	d6 = (0.082+0.056);
 
+	cout << "Lab 4 func world coords: " << xWgrip << "," << yWgrip << "," << zWgrip << endl;
 	xgrip = xWgrip + 0.150;
 	ygrip = yWgrip - 0.150;
 	zgrip = zWgrip + 0.010;
@@ -42,14 +43,20 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
 	theta1 = atan2(ycen,xcen) - atan2(lc,sc); 
 	theta6 = PI/2 + theta1 - yawGrip; 
  
-  se = sc - d5;
+  	se = sc - d5;
 	x3end = se*cos(theta1);
 	y3end = se*sin(theta1);
 	z3end = zcen + d6;
 
 	de = z3end - d1;
 	reSqrd = pow(se,2.0) + pow(de,2.0);
-	
+	double t2acos = (pow(a2,2.0) + reSqrd - pow(a3,2.0))/(2.0*a2*sqrt(reSqrd));
+	double t3acos = (pow(a2,2.0) + pow(a3,2.0) - reSqrd); 
+	cout << "sc: " << sc <<endl;
+	cout << "reSqrd: " << reSqrd << endl;
+	cout << "Theta 2 arccos: " << t2acos << endl;
+	cout << "Theta 3 arccos: " << t3acos << endl;
+
 	theta2 = -acos((pow(a2,2.0) + reSqrd - pow(a3,2.0))/(2.0*a2*sqrt(reSqrd))) - atan2(de,se);
 	theta3 = PI - acos((pow(a2,2.0) + pow(a3,2.0) - reSqrd)/(2.0*a2*a3));
 	theta4 = -theta2 - theta3 - PI/2; 

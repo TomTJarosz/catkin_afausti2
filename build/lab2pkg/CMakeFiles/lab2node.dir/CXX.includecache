@@ -23,6 +23,20 @@ ros/message_operations.h
 -
 
 /home/youbot/catkin_afausti2/devel/include/ece470_ur3_driver/positions.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
 
 /home/youbot/catkin_afausti2/src/lab2pkg/include/lab2pkg/lab2.h
 ros/ros.h

@@ -56,6 +56,14 @@ class ImageConverter
 		//class function for onMouse click
 	  	void onClick(int event,int x, int y, int flags, void* userdata);
 
+	  	void CameraToWorld(int r, int c, float xw, float yw);
+	  	
+	  	void moveArmTo(float x, float y, float z);
+
+	  	void pickUp(void);
+	  	void putDown(void);
+
+
 	private:
 	
 		//lab5's function, thresholding the image, input a grayscale image and returns a threshholded image

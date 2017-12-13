@@ -9,9 +9,9 @@
 # modified environment variables
 export CMAKE_PREFIX_PATH="/home/youbot/catkin_afausti2/devel:$CMAKE_PREFIX_PATH"
 export CPATH="/home/youbot/catkin_afausti2/devel/include:$CPATH"
-export LD_LIBRARY_PATH="/home/youbot/catkin_afausti2/devel/lib:/home/youbot/catkin_afausti2/devel/lib/i386-linux-gnu:/home/youbot/catkin_kkoppul2/devel/lib/i386-linux-gnu:/opt/ros/indigo/lib/i386-linux-gnu:/home/youbot/catkin_kkoppul2/devel/lib:/opt/ros/indigo/lib"
+export LD_LIBRARY_PATH="/home/youbot/catkin_afausti2/devel/lib:/home/youbot/catkin_afausti2/devel/lib/i386-linux-gnu:/home/youbot/catkin_jabyrns2/devel/lib/i386-linux-gnu:/opt/ros/indigo/lib/i386-linux-gnu:/home/youbot/catkin_jabyrns2/devel/lib:/opt/ros/indigo/lib"
 export PATH="/home/youbot/catkin_afausti2/devel/bin:$PATH"
-export PKG_CONFIG_PATH="/home/youbot/catkin_afausti2/devel/lib/pkgconfig:/home/youbot/catkin_afausti2/devel/lib/i386-linux-gnu/pkgconfig:/home/youbot/catkin_kkoppul2/devel/lib/i386-linux-gnu/pkgconfig:/opt/ros/indigo/lib/i386-linux-gnu/pkgconfig:/home/youbot/catkin_kkoppul2/devel/lib/pkgconfig:/opt/ros/indigo/lib/pkgconfig"
+export PKG_CONFIG_PATH="/home/youbot/catkin_afausti2/devel/lib/pkgconfig:/home/youbot/catkin_afausti2/devel/lib/i386-linux-gnu/pkgconfig:/home/youbot/catkin_jabyrns2/devel/lib/i386-linux-gnu/pkgconfig:/opt/ros/indigo/lib/i386-linux-gnu/pkgconfig:/home/youbot/catkin_jabyrns2/devel/lib/pkgconfig:/opt/ros/indigo/lib/pkgconfig"
 export PWD="/home/youbot/catkin_afausti2/build"
 export PYTHONPATH="/home/youbot/catkin_afausti2/devel/lib/python2.7/dist-packages:$PYTHONPATH"
 export ROSLISP_PACKAGE_DIRECTORIES="/home/youbot/catkin_afausti2/devel/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"

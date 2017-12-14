@@ -8,8 +8,6 @@ bool isReady=1;
 bool pending=0;
 
 float SuctionValue = 0.0;
-float xw = 0.0;
-float yw = 0.0;
 
 bool leftclickdone = 1;
 bool rightclickdone = 1;
@@ -177,7 +175,7 @@ Mat ImageConverter::thresholdImage(Mat gray_img)
 			
 	}
 
-	std::cout<<"Threshold is "<<zt<<std::endl;
+	//std::cout<<"Threshold is "<<zt<<std::endl;
 	// threshold the image
 	for(int i=0; i<totalpixels; i++)
 	{
@@ -469,52 +467,65 @@ Mat ImageConverter::associateObjects(Mat bw_img)
     theta_map[o_num]=atan(2.*c11/(c20-c02))/2.;
     }
 
-Vec3b black;
-black[0] = 0;
-black[1] = 0;
-black[2] = 0;
-for (int i=0; i<int(objs.size());i++)
-    {
-    int r=r_map[objs[i]];
-    int c=c_map[objs[i]];
-    int nr=r;
-    int nc=c;
-    float theta=theta_map[objs[i]];
-    for (int j=0; j<10; j++)
-    {int x=cos(theta)*j;
-    int y=sin(theta)*j;
-    nr=r+y;
-    nc=c+x;
-    if (nr>-1&&nc>-1&&nr<height&&nc<width)
-    {associate_img.at<Vec3b>(Point(nc,nr)) = black;}
-    }
+	Vec3b black;
+	black[0] = 0;
+	black[1] = 0;
+	black[2] = 0;
 
-    for (float j=0; j<10; j++)
-    {int x=cos(theta)*j;
-    int y=sin(theta)*j;
-    nr=r-y;
-    nc=c-x;
-    if (nr>-1&&nc>-1&&nr<height&&nc<width)
-    {associate_img.at<Vec3b>(Point(nc,nr)) = black;}
-    }
+	for (int i=0; i<int(objs.size());i++)
+	{
+    	int r = r_map[objs[i]];
+    	int c = c_map[objs[i]];
+    	int nr = r;
+    	int nc = c;
+    	float theta=theta_map[objs[i]];
+    	for (int j=0; j<10; j++)
+    	{
+    		int x=cos(theta)*j;
+    		int y=sin(theta)*j;
+    		nr = r+y;
+    		nc = c+x;
+    		if (nr>-1&&nc>-1&&nr<height&&nc<width)
+    		{
+    			associate_img.at<Vec3b>(Point(nc,nr)) = black;
+    		}
+    	}
 
-    for (int j=0; j<10; j++)
-    {int x=cos(theta+(3.1416/2.))*j;
-    int y=sin(theta+(3.1416/2.))*j;
-    nr=r+y;
-    nc=c+x;
-    if (nr>-1&&nc>-1&&nr<height&&nc<width)
-    {associate_img.at<Vec3b>(Point(nc,nr)) = black;}
-    }
+    	for (float j=0; j<10; j++)
+    	{
+    		int x = cos(theta)*j;
+    		int y = sin(theta)*j;
+    		nr = r-y;
+    		nc = c-x;
+    		if (nr>-1&&nc>-1&&nr<height&&nc<width)
+    		{
+    			associate_img.at<Vec3b>(Point(nc,nr)) = black;
+    		}
+    	}
 
-    for (int j=0; j<10; j++)
-    {int x=cos(theta+(3.1416/2.))*j;
-    int y=sin(theta+(3.1416/2.))*j;
-    nr=r-y;
-    nc=c-x;
-    if (nr>-1&&nc>-1&&nr<height&&nc<width)
-    {associate_img.at<Vec3b>(Point(nc,nr)) = black;}
-    }
+    	for (int j=0; j<10; j++)
+    	{
+    		int x = cos(theta+(3.1416/2.))*j;
+    		int y = sin(theta+(3.1416/2.))*j;
+    		nr = r+y;
+    		nc = c+x;
+    		if (nr>-1&&nc>-1&&nr<height&&nc<width)
+    		{
+    			associate_img.at<Vec3b>(Point(nc,nr)) = black;
+    		}
+    	}
+
+    	for (int j=0; j<10; j++)
+    	{
+    		int x = cos(theta+(3.1416/2.))*j;
+    		int y = sin(theta+(3.1416/2.))*j;
+    		nr = r-y;
+    		nc = c-x;
+    		if (nr>-1&&nc>-1&&nr<height&&nc<width)
+    		{
+    			associate_img.at<Vec3b>(Point(nc,nr)) = black;
+    		}
+    	}
 
     }
 
@@ -533,15 +544,14 @@ void onMouse(int event, int x, int y, int flags, void* userdata)
 		ic_ptr->onClick(event,x,y,flags,userdata);
 }
 
-void ImageConverter::CameraToWorld(int r, int c)
+void ImageConverter::CameraToWorld(int r, int c, double& xw, double& yw)
 {
 	// Extrinsic parameters CHANGE IF CAMERA IS MOVED!!!
     // Normal Robot
     double theta = 0.0;
-    double Tx = 0.899;
-	double Ty = 0.862;
+    double Tx = -1.1;
+	double Ty = -116;
 	
-
     // Back corner robot
     /*
 	double theta = 0.00713;
@@ -550,12 +560,12 @@ void ImageConverter::CameraToWorld(int r, int c)
 	*/
 
     // Intrinsic parameters 
-    double beta = 82.644;
+    double beta = 0.67;
     double Or = 240.0;
     double Oc = 320.0;
 
-    xw = (-cos(theta)*(r/beta - Or - Tx) + sin(theta)*(c/beta - Oc - Ty))/1000.0;
-    yw = (-sin(theta)*(r/beta - Or - Tx) + cos(theta)*(c/beta - Oc - Ty))/1000.0;
+    xw = -(cos(theta)*((double(r)-Or)/beta - Tx) + sin(theta)*((double(c)-Oc)/beta - Ty))/1000.0;
+    yw = -(-sin(theta)*((double(r)-Or)/beta - Tx) + cos(theta)*((double(c)-Oc)/beta - Ty))/1000.0;
 }
 
 void ImageConverter::moveArmTo(float x, float y, float z)
@@ -623,9 +633,11 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 	// If the robot is holding a block, place it at the designated row and column. 
 	double zLow,zHigh; // world coordinates for block heigth and maneuvering heigth
 
-	zLow = 0.0275;
+	zLow = 0.02;
 	zHigh = 0.2;
-
+	int numberBlock;
+	double xw, yw;
+	
 	if  ( event == EVENT_LBUTTONDOWN ) //if left click, do nothing other than printing the clicked point
 	{  
 		if (leftclickdone == 1) 
@@ -634,11 +646,19 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 			ROS_INFO_STREAM("left click:  (" << x << ", " << y << ")");  //the point you clicked
 
 			// Calibrate
-			CameraToWorld(y,x);
+			CameraToWorld(y,x,xw,yw);
 			ROS_INFO_STREAM("Calibration:  (" << x << ", " << y << ") to (" << xw << ", " << yw << ")");
 			
-			// Move above target
+			
+			//Move above target
+			
 			moveArmTo(xw, yw, zHigh);
+
+
+			printf("Enter the number of blocks\n");
+			cin >> numberBlock;
+			zLow = zLow*numberBlock;
+
 
 			// Move to target
 			moveArmTo(xw, yw, zLow);
@@ -666,10 +686,14 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 			ROS_INFO_STREAM("right click:  (" << x << ", " << y << ")");  //the point you clicked
 
 			// Calibrate
-			CameraToWorld(y,x);
+			CameraToWorld(y,x,xw,yw);
 
 			// Move above target
 			moveArmTo(xw, yw, zHigh);
+
+			printf("Enter the number of blocks\n");
+			cin >> numberBlock;
+			zLow = zLow*numberBlock;
 
 			// Move to target
 			moveArmTo(xw, yw, zLow);

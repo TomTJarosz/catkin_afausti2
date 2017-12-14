@@ -56,7 +56,7 @@ class ImageConverter
 		//class function for onMouse click
 	  	void onClick(int event,int x, int y, int flags, void* userdata);
 
-	  	void CameraToWorld(int r, int c);
+	  	void CameraToWorld(int r, int c, double& xw, double& yw);
 	  	
 	  	void moveArmTo(float x, float y, float z);
 

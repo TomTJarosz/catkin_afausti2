@@ -26,7 +26,7 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
 	a6 = 0.0535;
 	d6 = (0.082+0.056);
 
-	cout << "Lab 4 func world coords: " << xWgrip << "," << yWgrip << "," << zWgrip << endl;
+	//cout << "Lab 4 func world coords: " << xWgrip << "," << yWgrip << "," << zWgrip << endl;
 	xgrip = xWgrip + 0.150;
 	ygrip = yWgrip - 0.150;
 	zgrip = zWgrip + 0.010;
@@ -36,7 +36,7 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
 	ycen = ygrip - a6*sin(yawGrip);
 	zcen = zgrip;
 
-	rcSqrd = pow(xcen,2) + pow(ycen,2); //square of distance from origin to xcen,ycen,zcen
+	rcSqrd = pow(xcen,2.0) + pow(ycen,2.0); //square of distance from origin to xcen,ycen,zcen
 	lc = d2 + d3 + d4;
 	sc = sqrt(rcSqrd - pow(lc,2.0)); 
 
@@ -51,13 +51,20 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
 	de = z3end - d1;
 	reSqrd = pow(se,2.0) + pow(de,2.0);
 	double t2acos = (pow(a2,2.0) + reSqrd - pow(a3,2.0))/(2.0*a2*sqrt(reSqrd));
-	double t3acos = (pow(a2,2.0) + pow(a3,2.0) - reSqrd); 
+	double t3acos = (pow(a2,2.0) + pow(a3,2.0) - reSqrd);
+	/*cout << "rcSqrd: " << rcSqrd <<endl;
+	cout << "lc: " << lc <<endl; 
 	cout << "sc: " << sc <<endl;
+	cout << "se: " << se <<endl;
+	cout << "x3end: " << x3end <<endl;
+	cout << "y3end: " << y3end <<endl;
+	cout << "z3end: " << z3end <<endl;
+	cout << "de: " << de <<endl;
 	cout << "reSqrd: " << reSqrd << endl;
 	cout << "Theta 2 arccos: " << t2acos << endl;
 	cout << "Theta 3 arccos: " << t3acos << endl;
-
-	theta2 = -acos((pow(a2,2.0) + reSqrd - pow(a3,2.0))/(2.0*a2*sqrt(reSqrd))) - atan2(de,se);
+*/
+	theta2 = -1.0*acos((pow(a2,2.0) + reSqrd - pow(a3,2.0))/(2.0*a2*sqrt(reSqrd))) - atan2(de,se);
 	theta3 = PI - acos((pow(a2,2.0) + pow(a3,2.0) - reSqrd)/(2.0*a2*a3));
 	theta4 = -theta2 - theta3 - PI/2; 
 	theta5 = -PI/2;  
